@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: arcp-db
+  namespace: arcp
+spec:
+  serviceName: arcp-db-headless
+  replicas: 1
+  selector:
+    matchLabels:
+      app: arcp-db
+  template:
+    metadata:
+      labels:
+        app: arcp-db
+    spec:
+      containers:
+        - name: arcp-db-ct
+          image: postgres:16-alpine
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              value: "arcp"
+            - name: POSTGRES_USER
+              value: "arcp"
+            - name: POSTGRES_PASSWORD
+              value: "arcp"
+            # Sous-dossier pour eviter le conflit "directory not empty" (lost+found)
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          volumeMounts:
+            - name: arcp-db-vl
+              mountPath: /var/lib/postgresql/data
+  volumeClaimTemplates:
+    - metadata:
+        name: arcp-db-vl
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 10Gi
