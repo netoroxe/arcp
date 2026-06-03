@@ -1,0 +1,143 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: arcp-web
+  namespace: arcp
+  labels:
+    app: arcp-web
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: arcp-web
+  template:
+    metadata:
+      labels:
+        app: arcp-web
+    spec:
+      containers:
+      - name: arcp-web
+        image: azertfcddghjk/arcp-app:latest
+        ports:
+        - containerPort: 80
+        env:
+        - name: REDIS_URL
+          value: redis://redis:6379/0
+        - name: CELERY_BROKER_URL
+          value: redis://redis:6379/1
+        - name: CELERY_RESULT_BACKEND
+          value: redis://redis:6379/2
+        # --- Connexion PostgreSQL ---
+        - name: POSTGRES_DB
+          value: "arcp"
+        - name: POSTGRES_USER
+          value: "arcp"
+        - name: POSTGRES_PASSWORD
+          value: "arcp"
+        - name: POSTGRES_HOST
+          value: "arcp-db"
+        - name: POSTGRES_PORT
+          value: "5432"
+        # --- Django ---
+        - name: DJANGO_ALLOWED_HOSTS
+          value: localhost,127.0.0.1,arcp.127.0.0.1.nip.io
+        - name: CORS_ALLOWED_ORIGINS
+          value: http://localhost,http://127.0.0.1
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+  namespace: arcp
+  labels:
+    app: redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+      - name: redis
+        image: redis:7-alpine
+        ports:
+        - containerPort: 6379
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: arcp-db
+  namespace: arcp
+  labels:
+    app: arcp-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: arcp-db
+  template:
+    metadata:
+      labels:
+        app: arcp-db
+    spec:
+      containers:
+      - name: arcp-db
+        image: postgres:16-alpine
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRES_DB
+          value: "arcp"
+        - name: POSTGRES_USER
+          value: "arcp"
+        - name: POSTGRES_PASSWORD
+          value: "arcp"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: arcp-celery
+  namespace: arcp
+  labels:
+    app: arcp-celery
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: arcp-celery
+  template:
+    metadata:
+      labels:
+        app: arcp-celery
+    spec:
+      containers:
+      - name: arcp-celery
+        image: azertfcddghjk/arcp-app:latest
+        args: ["worker"]
+        env:
+        - name: REDIS_URL
+          value: redis://redis:6379/0
+        - name: CELERY_BROKER_URL
+          value: redis://redis:6379/1
+        - name: CELERY_RESULT_BACKEND
+          value: redis://redis:6379/2
+        # --- Connexion PostgreSQL ---
+        - name: POSTGRES_DB
+          value: "arcp"
+        - name: POSTGRES_USER
+          value: "arcp"
+        - name: POSTGRES_PASSWORD
+          value: "arcp"
+        - name: POSTGRES_HOST
+          value: "arcp-db"
+        - name: POSTGRES_PORT
+          value: "5432"
+        # --- Django ---
+        - name: DJANGO_ALLOWED_HOSTS
+          value: localhost,127.0.0.1
+        - name: CORS_ALLOWED_ORIGINS
+          value: http://localhost,http://127.0.0.1

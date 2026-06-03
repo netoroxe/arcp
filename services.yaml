@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+  namespace: arcp
+spec:
+  selector:
+    app: redis
+  ports:
+  - port: 6379
+    targetPort: 6379
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: arcp-db
+  namespace: arcp
+spec:
+  selector:
+    app: arcp-db
+  ports:
+  - port: 5432
+    targetPort: 5432
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: arcp-web
+  namespace: arcp
+spec:
+  selector:
+    app: arcp-web
+  ports:
+  - port: 80
+    targetPort: 80
+  type: ClusterIP
