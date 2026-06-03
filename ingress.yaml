@@ -1,0 +1,26 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: arcp-ingress
+  namespace: arcp
+  annotations:
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+    # le frontend appelle /api/ sur le meme host : nginx du conteneur route en interne
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - arcp.127.0.0.1.nip.io
+      secretName: arcp-tls
+  rules:
+    - host: arcp.127.0.0.1.nip.io
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: arcp-web
+                port:
+                  number: 80
